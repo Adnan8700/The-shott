@@ -31,19 +31,21 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
     })();
   }, [participantId]);
 
-  // After rendering payment HTML, ensure all interactive elements inside are clickable
+    // Payment HTML ke <script> tags ko manually re-create karte hain, warna browser unhe run nahi karta
   useEffect(() => {
-    if (!paymentContainerRef.current) return;
-    // Ensure pointer events are enabled on all children
     const container = paymentContainerRef.current;
+    if (!container || container.dataset.scriptsLoaded === 'true') return;
+    container.dataset.scriptsLoaded = 'true';
     container.style.pointerEvents = 'auto';
-    const allElements = container.querySelectorAll('*');
-    allElements.forEach((el) => {
-      const htmlEl = el as HTMLElement;
-      htmlEl.style.pointerEvents = 'auto';
-      if (htmlEl.style.zIndex === '-1') htmlEl.style.zIndex = '1';
+    container.querySelectorAll('script').forEach((oldScript) => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach((attr) =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.text = oldScript.text;
+      oldScript.parentNode?.replaceChild(newScript, oldScript);
     });
-  }, [config]);
+  }, [config, loading]);
 
   // Poll for payment verification (in case webhook updates the DB)
   const checkPaymentStatus = async () => {
