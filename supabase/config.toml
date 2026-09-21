@@ -1,0 +1,7 @@
+[functions.payment-webhook]
+verify_jwt = false
+entrypoint = "./functions/payment-webhook/index.ts"
+
+[functions.admin-api]
+verify_jwt = false
+entrypoint = "./functions/admin-api/index.ts"

@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --shot-black: #050505;
+  --shot-near-black: #0a0a0a;
+  --shot-charcoal: #141414;
+  --shot-white: #ffffff;
+  --shot-off-white: #f0f0f0;
+  --shot-green: #00ff88;
+  --shot-green-dim: #00cc6f;
+  --shot-green-glow: rgba(0, 255, 136, 0.4);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--shot-black);
+  color: var(--shot-off-white);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: 'Orbitron', sans-serif;
+}
+
+.font-grotesk {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Cinematic background gradient */
+.bg-cinematic {
+  background: radial-gradient(ellipse at 50% 0%, #1a1a1a 0%, #0a0a0a 40%, #050505 100%);
+}
+
+/* Green glow effects */
+.glow-green {
+  box-shadow: 0 0 20px var(--shot-green-glow), 0 0 40px rgba(0, 255, 136, 0.15);
+}
+
+.text-glow-green {
+  text-shadow: 0 0 20px var(--shot-green-glow), 0 0 40px rgba(0, 255, 136, 0.2);
+}
+
+.border-glow-green {
+  border-color: var(--shot-green);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.2), inset 0 0 15px rgba(0, 255, 136, 0.05);
+}
+
+/* Particle field animation */
+@keyframes float-particle {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.3; }
+  50% { transform: translateY(-30px) translateX(10px); opacity: 0.6; }
+}
+
+.particle {
+  animation: float-particle 8s ease-in-out infinite;
+}
+
+/* Text reveal animation */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reveal-up {
+  animation: reveal-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Fade in */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fade-in 1.5s ease forwards;
+}
+
+/* Slow zoom for hero images */
+@keyframes slow-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+.slow-zoom {
+  animation: slow-zoom 20s ease-out infinite alternate;
+}
+
+/* Pulse glow */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(0, 255, 136, 0.3); }
+  50% { box-shadow: 0 0 30px rgba(0, 255, 136, 0.6), 0 0 60px rgba(0, 255, 136, 0.2); }
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Scroll-triggered reveal */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Marquee for animated words */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* Locked card hover */
+.locked-card {
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.locked-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--shot-green);
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.15);
+}
+
+/* Number counter */
+.counter-digit {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--shot-black);
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--shot-green-dim);
+}
+
+/* Selection */
+::selection {
+  background: var(--shot-green);
+  color: var(--shot-black);
+}
+
+/* Input focus */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+}
+
+/* Hide number input arrows */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Activity ticker slide */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.slide-in-left {
+  animation: slide-in-left 0.5s ease forwards;
+}
+
+/* Progress bar fill */
+@keyframes fill-progress {
+  from { width: 0%; }
+}
+
+.fill-progress {
+  animation: fill-progress 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Grid pattern overlay */
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Spotlight effect */
+.spotlight {
+  background: radial-gradient(circle at 50% 30%, rgba(0, 255, 136, 0.08) 0%, transparent 50%);
+}
+
+/* Payment button container - ensure clickable */
+.payment-button-container {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+.payment-button-container iframe,
+.payment-button-container button,
+.payment-button-container a,
+.payment-button-container form,
+.payment-button-container input,
+.payment-button-container script {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+/* Sticky CTA */
+.sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: linear-gradient(to top, var(--shot-black) 80%, transparent);
+  padding: 16px 20px 20px;
+}
+
+@media (min-width: 768px) {
+  .sticky-cta {
+    display: none;
+  }
+}
+
+/* Noise texture */
+.noise-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
