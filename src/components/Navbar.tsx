@@ -56,6 +56,12 @@ export function Navbar({ onTakeShot }: { onTakeShot: () => void }) {
                 {link.label}
               </button>
             ))}
+                        <button
+              onClick={() => (window.location.hash = '/login')}
+              className="px-6 py-2.5 border border-white/20 text-white font-bold text-xs tracking-widest uppercase rounded-sm hover:border-[#00ff88] hover:text-[#00ff88] transition-colors duration-300"
+            >
+              Login Profile
+            </button>
             <button
               onClick={onTakeShot}
               className="px-6 py-2.5 bg-[#00ff88] text-black font-bold text-xs tracking-widest uppercase rounded-sm hover:bg-white transition-colors duration-300"
@@ -63,7 +69,6 @@ export function Navbar({ onTakeShot }: { onTakeShot: () => void }) {
               Take Your Shot
             </button>
           </div>
-
           <button
             className="md:hidden text-white"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -84,12 +89,21 @@ export function Navbar({ onTakeShot }: { onTakeShot: () => void }) {
               {link.label}
             </button>
           ))}
+                    <button
+            onClick={() => {
+              setMenuOpen(false);
+              window.location.hash = '/login';
+            }}
+            className="mt-4 px-8 py-3 border border-white/20 text-white font-bold text-sm tracking-widest uppercase rounded-sm"
+          >
+            Login Profile
+          </button>
           <button
             onClick={() => {
               setMenuOpen(false);
               onTakeShot();
             }}
-            className="mt-4 px-8 py-3 bg-[#00ff88] text-black font-bold text-sm tracking-widest uppercase rounded-sm"
+            className="px-8 py-3 bg-[#00ff88] text-black font-bold text-sm tracking-widest uppercase rounded-sm"
           >
             Take Your Shot
           </button>
