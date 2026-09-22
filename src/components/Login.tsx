@@ -28,6 +28,7 @@ export function Login({ onBack, onLoggedIn }: LoginProps) {
       if (!data) { setError('Invalid username or password.'); return; }
       if (data.password_hash !== btoa(password)) { setError('Invalid username or password.'); return; }
 
+      sessionStorage.setItem('shot-user-session', data.participant_id);
       onLoggedIn(data.participant_id);
     } catch {
       setError('Login failed. Please try again.');
