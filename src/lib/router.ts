@@ -6,6 +6,7 @@ export type Route =
   | { name: 'payment'; participantId?: string }
   | { name: 'thankyou'; participantId?: string }
   | { name: 'dashboard'; participantId?: string }
+  | { name: 'login'; participantId?: string }
   | { name: 'admin' };
 
 function parseHash(): Route {
@@ -22,6 +23,8 @@ function parseHash(): Route {
     return { name: 'thankyou', participantId: params.get('pid') || undefined };
   if (segments[0] === 'dashboard')
     return { name: 'dashboard', participantId: params.get('pid') || undefined };
+  if (segments[0] === 'login')
+    return { name: 'login', participantId: params.get('pid') || undefined };
   if (segments[0] === 'admin') return { name: 'admin' };
   return { name: 'home' };
 }
