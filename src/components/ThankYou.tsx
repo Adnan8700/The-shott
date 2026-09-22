@@ -284,7 +284,7 @@ export function ThankYou({ participantId, onGoToDashboard }: ThankYouProps) {
 
         {/* Go to dashboard */}
         <button
-          onClick={() => onGoToDashboard(participantId)}
+        onClick={() => (window.location.hash = '/login')}
           className="w-full py-4 bg-white/5 border border-white/10 text-white font-display font-bold text-sm tracking-widest uppercase rounded-sm hover:bg-white/10 hover:border-[#00ff88]/30 transition-all flex items-center justify-center gap-2"
         >
           View My Status <ArrowRight size={16} />
