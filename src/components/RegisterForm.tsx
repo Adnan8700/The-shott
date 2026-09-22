@@ -71,7 +71,16 @@ export function RegisterForm({ refId, onBack, onRegistered }: RegisterFormProps)
       setError('Password must be at least 4 characters.');
       return;
     }
+          if (!form.full_name || !form.email || !form.phone || !form.username || !form.password) {
       setError('Please fill in all required fields.');
+      return;
+    }
+    if (form.password.length < 4) {
+      setError('Password must be at least 4 characters.');
+      return;
+    }
+    if (form.age && (parseInt(form.age) < 18 || parseInt(form.age) > 100)) {
+      setError('You must be 18 or older to participate.');
       return;
     }
     if (form.age && (parseInt(form.age) < 18 || parseInt(form.age) > 100)) {
