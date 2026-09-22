@@ -25,6 +25,8 @@ export function RegisterForm({ refId, onBack, onRegistered }: RegisterFormProps)
     city: '',
     instagram_username: '',
     referral_id: refId || '',
+    username: '',
+    password: '',
     agree_terms: false,
     agree_privacy: false,
     confirm_eligibility: false,
@@ -61,7 +63,14 @@ export function RegisterForm({ refId, onBack, onRegistered }: RegisterFormProps)
     e.preventDefault();
     setError(null);
 
-    if (!form.full_name || !form.email || !form.phone) {
+        if (!form.full_name || !form.email || !form.phone || !form.username || !form.password) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+    if (form.password.length < 4) {
+      setError('Password must be at least 4 characters.');
+      return;
+    }
       setError('Please fill in all required fields.');
       return;
     }
@@ -87,6 +96,8 @@ export function RegisterForm({ refId, onBack, onRegistered }: RegisterFormProps)
         p_city: form.city || null,
         p_instagram_username: form.instagram_username || null,
         p_referred_by_referral_id: form.referral_id || null,
+        p_username: form.username,
+        p_password_hash: btoa(form.password),
       });
 
       if (rpcError) throw rpcError;
@@ -139,7 +150,30 @@ export function RegisterForm({ refId, onBack, onRegistered }: RegisterFormProps)
               required
             />
           </div>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-grotesk tracking-wider text-gray-500 uppercase mb-2">Username *</label>
+              <input
+                type="text"
+                value={form.username}
+                onChange={(e) => update('username', e.target.value)}
+                className={inputClass}
+                placeholder="Choose a username"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-grotesk tracking-wider text-gray-500 uppercase mb-2">Password *</label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => update('password', e.target.value)}
+                className={inputClass}
+                placeholder="Choose a password"
+                required
+              />
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-grotesk tracking-wider text-gray-500 uppercase mb-2">Email *</label>
