@@ -24,6 +24,7 @@ import { PaymentPage } from '@/components/PaymentPage';
 import { ThankYou } from '@/components/ThankYou';
 import { Dashboard } from '@/components/Dashboard';
 import { AdminPanel } from '@/components/AdminPanel';
+import { Login } from '@/components/Login';
 import type { AdminConfig } from '@/lib/types';
 
 function App() {
@@ -50,7 +51,15 @@ function App() {
   if (route.name === 'admin') {
     return <AdminPanel />;
   }
-
+  // Login route
+  if (route.name === 'login') {
+    return (
+      <Login
+        onBack={goHome}
+        onLoggedIn={(pid) => navigate(buildPath('/dashboard', { pid }))}
+      />
+    );
+  }
   // Registration route
   if (route.name === 'register') {
     return <RegisterForm refId={route.ref ?? null} onBack={goHome} onRegistered={(pid) => navigate(buildPath('/payment', { pid }))} />;
