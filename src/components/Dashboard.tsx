@@ -11,6 +11,12 @@ interface DashboardProps {
 }
 
 export function Dashboard({ participantId, onBack }: DashboardProps) {
+    useEffect(() => {
+    const session = sessionStorage.getItem('shot-user-session');
+    if (session !== participantId) {
+      window.location.hash = '/login';
+    }
+  }, [participantId]);
   const [config, setConfig] = useState<AdminConfig | null>(null);
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [copied, setCopied] = useState(false);
