@@ -36,6 +36,10 @@ export function Dashboard({ participantId, onBack }: DashboardProps) {
         .eq('participant_id', participantId)
         .maybeSingle();
       setParticipant(data as Participant | null);
+      if (data && !(data as Participant).payment_verified) {
+        window.location.hash = `/payment?pid=${participantId}`;
+        return;
+      }
       if (data) {
         setIgForm({
           username: (data as Participant).instagram_username || '',
