@@ -120,28 +120,65 @@ export function AdminPanel() {
 // ============================================================
 // DASHBOARD STATS
 // ============================================================
+type PayRow = {
+  participant_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  payment_amount: string | null;
+  payment_reference: string | null;
+  updated_at: string;
+  created_at: string;
+};
+
+const PAY_COLUMNS = 'participant_id, full_name, email, phone, payment_amount, payment_reference, updated_at, created_at';
+
+function formatDateTime(v: string) {
+  return new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
 function AdminDashboard() {
   const [stats, setStats] = useState<Record<string, number> | null>(null);
+  const [revenue, setRevenue] = useState(0);
+  const [recentPaid, setRecentPaid] = useState<PayRow[]>([]);
+  const [recentUnpaid, setRecentUnpaid] = useState<PayRow[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase.rpc('get_admin_stats');
-      setStats(data ?? {});
-    })();
+  const load = useCallback(async () => {
+    const [statsRes, paidRes, unpaidRes, revRes] = await Promise.all([
+      supabase.rpc('get_admin_stats'),
+      supabase.from('participants').select(PAY_COLUMNS).eq('payment_verified', true).order('updated_at', { ascending: false }).limit(10),
+      supabase.from('participants').select(PAY_COLUMNS).eq('payment_verified', false).order('created_at', { ascending: false }).limit(10),
+      supabase.from('participants').select('payment_amount').eq('payment_verified', true),
+    ]);
+    setStats(statsRes.data ?? {});
+    setRecentPaid((paidRes.data as PayRow[]) || []);
+    setRecentUnpaid((unpaidRes.data as PayRow[]) || []);
+    const rows = (revRes.data as { payment_amount: string | null }[]) || [];
+    setRevenue(rows.reduce((sum, r) => sum + (parseFloat(String(r.payment_amount ?? '').replace(/[^0-9.]/g, '')) || 0), 0));
+    setLastUpdated(new Date());
   }, []);
+
+  // Har 10 second mein data apne aap refresh hota hai
+  useEffect(() => {
+    load();
+    const t = setInterval(load, 10000);
+    return () => clearInterval(t);
+  }, [load]);
 
   if (!stats) return <div className="text-gray-500 font-grotesk text-sm">Loading...</div>;
 
-  const cards = [
+  const cards: { label: string; value: number; suffix?: string; prefix?: string }[] = [
     { label: 'Total Registrations', value: stats.total_registrations ?? 0 },
     { label: 'Paid Registrations', value: stats.paid_registrations ?? 0 },
-    { label: 'Pending Payments', value: stats.pending_payments ?? 0 },
-    { label: 'Successful Payments', value: stats.successful_payments ?? 0 },
+    { label: 'Unpaid (Pending Payments)', value: stats.pending_payments ?? 0 },
+    { label: 'Revenue', value: revenue, prefix: '\u20B9' },
     { label: 'Failed Payments', value: stats.failed_payments ?? 0 },
-    { label: 'Revenue (count)', value: stats.total_revenue ?? 0 },
+    { label: "Today's Registrations", value: stats.daily_registrations ?? 0 },
+    { label: "Today's Payments", value: stats.daily_payments ?? 0 },
+    { label: 'Conversion Rate', value: stats.conversion_rate ?? 0, suffix: '%' },
     { label: 'Confirmed Participants', value: stats.confirmed_shots ?? 0 },
     { label: 'Pending Shots', value: stats.pending_shots ?? 0 },
-    { label: 'Referrals', value: stats.successful_referrals ?? 0 },
     { label: 'Successful Referrals', value: stats.successful_referrals ?? 0 },
     { label: '0-Referral Participants', value: stats.zero_referral_participants ?? 0 },
     { label: '1-Referral Participants', value: stats.one_referral_participants ?? 0 },
@@ -149,21 +186,79 @@ function AdminDashboard() {
     { label: 'Instagram Submissions', value: (stats.pending_instagram ?? 0) + (stats.approved_instagram ?? 0) + (stats.rejected_instagram ?? 0) },
     { label: 'Instagram Approved', value: stats.approved_instagram ?? 0 },
     { label: 'Instagram Pending', value: stats.pending_instagram ?? 0 },
-    { label: "Today's Registrations", value: stats.daily_registrations ?? 0 },
-    { label: "Today's Payments", value: stats.daily_payments ?? 0 },
-    { label: 'Conversion Rate', value: stats.conversion_rate ?? 0, suffix: '%' },
   ];
 
   return (
     <div>
-      <h2 className="font-display font-bold text-white text-xl mb-6">Dashboard Metrics</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="font-display font-bold text-white text-xl">Dashboard Metrics</h2>
+        <div className="flex items-center gap-2 text-xs text-gray-500 font-grotesk">
+          <span className="inline-block w-2 h-2 rounded-full bg-[#00ff88] animate-pulse" />
+          Live{lastUpdated ? ` \u00B7 updated ${lastUpdated.toLocaleTimeString('en-IN')}` : ''}
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {cards.map((c) => (
           <div key={c.label} className="bg-white/[0.03] border border-white/10 rounded-xl p-5">
             <p className="text-xs text-gray-500 font-grotesk uppercase tracking-wider mb-2">{c.label}</p>
-            <p className="font-display font-bold text-white text-2xl">{c.value.toLocaleString('en-US')}{c.suffix || ''}</p>
+            <p className="font-display font-bold text-white text-2xl">{c.prefix || ''}{c.value.toLocaleString('en-IN')}{c.suffix || ''}</p>
           </div>
         ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
+        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-5">
+          <h3 className="font-display font-bold text-[#00ff88] text-sm tracking-wider uppercase mb-4">Recent Payments (Paid)</h3>
+          {recentPaid.length === 0 ? (
+            <p className="text-sm text-gray-600 font-grotesk">No payments yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-grotesk">
+                <thead className="text-gray-500 uppercase tracking-wider">
+                  <tr><th className="pb-2 pr-3">Name</th><th className="pb-2 pr-3">ID</th><th className="pb-2 pr-3">Amount</th><th className="pb-2 pr-3">Payment Ref</th><th className="pb-2">Time</th></tr>
+                </thead>
+                <tbody className="text-gray-300">
+                  {recentPaid.map((p) => (
+                    <tr key={p.participant_id} className="border-t border-white/5">
+                      <td className="py-2 pr-3">{p.full_name}</td>
+                      <td className="py-2 pr-3">{p.participant_id}</td>
+                      <td className="py-2 pr-3">{p.payment_amount ? `\u20B9${p.payment_amount}` : '-'}</td>
+                      <td className="py-2 pr-3">{p.payment_reference || '-'}</td>
+                      <td className="py-2 whitespace-nowrap">{formatDateTime(p.updated_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white/[0.03] border border-white/10 rounded-xl p-5">
+          <h3 className="font-display font-bold text-yellow-400 text-sm tracking-wider uppercase mb-4">Registered, Not Paid Yet</h3>
+          {recentUnpaid.length === 0 ? (
+            <p className="text-sm text-gray-600 font-grotesk">Everyone has paid.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs font-grotesk">
+                <thead className="text-gray-500 uppercase tracking-wider">
+                  <tr><th className="pb-2 pr-3">Name</th><th className="pb-2 pr-3">ID</th><th className="pb-2 pr-3">Phone</th><th className="pb-2 pr-3">Email</th><th className="pb-2">Registered</th></tr>
+                </thead>
+                <tbody className="text-gray-300">
+                  {recentUnpaid.map((p) => (
+                    <tr key={p.participant_id} className="border-t border-white/5">
+                      <td className="py-2 pr-3">{p.full_name}</td>
+                      <td className="py-2 pr-3">{p.participant_id}</td>
+                      <td className="py-2 pr-3">{p.phone}</td>
+                      <td className="py-2 pr-3">{p.email}</td>
+                      <td className="py-2 whitespace-nowrap">{formatDateTime(p.created_at)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -185,8 +280,8 @@ function AdminParticipants() {
   const [total, setTotal] = useState(0);
   const [selected, setSelected] = useState<Participant | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (silent?: unknown) => {
+    if (silent !== true) setLoading(true);
     let countQuery = supabase.from('participants').select('*', { count: 'exact', head: true });
     let dataQuery = supabase.from('participants').select('*');
 
@@ -205,6 +300,11 @@ function AdminParticipants() {
   }, [filter, sortBy, sortDir, page]);
 
   useEffect(() => { load(); }, [load]);
+  // Har 10 second mein list apne aap refresh (bina screen hilaye)
+  useEffect(() => {
+    const t = setInterval(() => load(true), 10000);
+    return () => clearInterval(t);
+  }, [load]);
 
   const filtered = participants.filter((p) => {
     if (!search) return true;
