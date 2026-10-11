@@ -492,13 +492,31 @@ function AdminSocialProof() {
     })();
   }, []);
 
-  const saveConfig = async (key: string, value: unknown) => {
-    setSaving(true); setSaved(false);
-    await supabase.from('admin_config').upsert({ key, value: JSON.parse(JSON.stringify(value)), updated_at: new Date().toISOString() });
-    setConfig((prev) => ({ ...prev, [key]: value }));
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  };
+  const [dirty, setDirty] = useState<Record<string, unknown>>({});
+
+const saveConfig = (key: string, value: unknown) => {
+  setConfig((prev) => ({ ...prev, [key]: value }));
+  setDirty((prev) => ({ ...prev, [key]: value }));
+  setSaved(false);
+};
+
+const saveAllChanges = async () => {
+  const entries = Object.entries(dirty);
+  if (entries.length === 0) return;
+  setSaving(true); setSaved(false);
+  const { error } = await supabase.from('admin_config').upsert(
+    entries.map(([key, value]) => ({
+      key,
+      value: JSON.parse(JSON.stringify(value)),
+      updated_at: new Date().toISOString(),
+    }))
+  );
+  setSaving(false);
+  if (error) { alert('Save failed: ' + error.message); return; }
+  setDirty({});
+  setSaved(true);
+  setTimeout(() => setSaved(false), 2500);
+};
 
   const inputClass = 'w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-2.5 text-white font-grotesk text-sm focus:border-[#00ff88]/50';
 
@@ -612,13 +630,32 @@ function AdminConfigEditor() {
     })();
   }, []);
 
-  const saveConfig = async (key: string, value: unknown) => {
-    setSaving(true); setSaved(false);
-    await supabase.from('admin_config').upsert({ key, value: JSON.parse(JSON.stringify(value)), updated_at: new Date().toISOString() });
-    setConfig((prev) => ({ ...prev, [key]: value }));
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-  };
+  const [dirty, setDirty] = useState<Record<string, unknown>>({});
+
+const saveConfig = (key: string, value: unknown) => {
+  setConfig((prev) => ({ ...prev, [key]: value }));
+  setDirty((prev) => ({ ...prev, [key]: value }));
+  setSaved(false);
+};
+
+const saveAllChanges = async () => {
+  const entries = Object.entries(dirty);
+  if (entries.length === 0) return;
+  setSaving(true); setSaved(false);
+  const { error } = await supabase.from('admin_config').upsert(
+    entries.map(([key, value]) => ({
+      key,
+      value: JSON.parse(JSON.stringify(value)),
+      updated_at: new Date().toISOString(),
+    }))
+  );
+  setSaving(false);
+  if (error) { alert('Save failed: ' + error.message); return; }
+  setDirty({});
+  setSaved(true);
+  setTimeout(() => setSaved(false), 2500);
+};
+  
 const saveDates = async () => {
   await saveConfig('show_start_date', datesLocal.show_start_date);
   await saveConfig('registration_deadline', datesLocal.registration_deadline);
