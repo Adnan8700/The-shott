@@ -10,6 +10,10 @@ export type Route =
   | { name: 'admin' };
 
 function parseHash(): Route {
+  // Razorpay redirect ke liye: https://site.com/thankyou (bina #) bhi chalega
+  if (!window.location.hash && window.location.pathname.replace(/\/+$/, '') === '/thankyou') {
+    return { name: 'thankyou' };
+  }
   const hash = window.location.hash.slice(1) || '/';
   const [path, queryString] = hash.split('?');
   const params = new URLSearchParams(queryString || '');
