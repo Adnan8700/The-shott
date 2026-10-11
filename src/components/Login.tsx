@@ -12,21 +12,30 @@ export function Login({ onBack, onLoggedIn }: LoginProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pendingPid, setPendingPid] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setPendingPid(null);
     setLoading(true);
     try {
       const { data, error: dbError } = await supabase
         .from('participants')
-        .select('participant_id, password_hash')
+        .select('participant_id, password_hash, payment_verified')
         .eq('username', username)
         .maybeSingle();
 
       if (dbError) throw dbError;
       if (!data) { setError('Invalid username or password.'); return; }
       if (data.password_hash !== btoa(password)) { setError('Invalid username or password.'); return; }
+
+      // Sirf wahi login kar sakta hai jiska payment verify ho chuka hai
+      if (!data.payment_verified) {
+        setPendingPid(data.participant_id);
+        setError('Payment not confirmed yet. If you have just paid, wait a minute and try again.');
+        return;
+      }
 
       sessionStorage.setItem('shot-user-session', data.participant_id);
       onLoggedIn(data.participant_id);
@@ -73,6 +82,15 @@ export function Login({ onBack, onLoggedIn }: LoginProps) {
             required
           />
           {error && <p className="text-sm text-red-400 font-grotesk">{error}</p>}
+          {pendingPid && (
+            <button
+              type="button"
+              onClick={() => { window.location.hash = `/payment?pid=${pendingPid}`; }}
+              className="text-sm text-[#00ff88] hover:text-white transition-colors font-grotesk underline"
+            >
+              Haven't paid yet? Go to payment
+            </button>
+          )}
           <button
             type="submit"
             disabled={loading}
