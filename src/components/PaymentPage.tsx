@@ -15,6 +15,7 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
   const [participant, setParticipant] = useState<Participant | null>(null);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [notPaidYet, setNotPaidYet] = useState(false);
   const paymentContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
   // Poll for payment verification (in case webhook updates the DB)
   const checkPaymentStatus = async () => {
     setChecking(true);
+    setNotPaidYet(false);
     const { data } = await supabase
       .from('participants')
       .select('payment_verified, payment_status')
@@ -59,6 +61,7 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
       onPaymentSuccess(participantId);
     } else {
       setChecking(false);
+      setNotPaidYet(true);
     }
   };
 
@@ -115,6 +118,10 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
           </div>
         </div>
 
+        <p className="mb-4 text-xs text-gray-500 font-grotesk text-center">
+          While paying, use the same email and phone number you registered with, so your payment is matched automatically.
+        </p>
+
         {/* Payment button area — admin-configurable HTML */}
         {config?.payment_enabled && config.payment_html ? (
           <div
@@ -142,6 +149,12 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
         >
           {checking ? 'Verifying payment...' : 'I have completed payment — Verify'}
         </button>
+
+        {notPaidYet && (
+          <p className="mt-3 text-center text-xs text-yellow-500/80 font-grotesk">
+            Payment not received yet. If you just paid, wait a minute and press Verify again.
+          </p>
+        )}
 
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-600 font-grotesk">
           <Shield size={14} />
