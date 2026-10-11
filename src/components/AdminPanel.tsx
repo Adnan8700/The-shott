@@ -494,29 +494,31 @@ function AdminSocialProof() {
 
   const [dirty, setDirty] = useState<Record<string, unknown>>({});
 
-const saveConfig = (key: string, value: unknown) => {
-  setConfig((prev) => ({ ...prev, [key]: value }));
-  setDirty((prev) => ({ ...prev, [key]: value }));
-  setSaved(false);
-};
+  // Ab ye sirf screen par badlav karta hai, database mein nahi.
+  const saveConfig = (key: string, value: unknown) => {
+    setConfig((prev) => ({ ...prev, [key]: value }));
+    setDirty((prev) => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
 
-const saveAllChanges = async () => {
-  const entries = Object.entries(dirty);
-  if (entries.length === 0) return;
-  setSaving(true); setSaved(false);
-  const { error } = await supabase.from('admin_config').upsert(
-    entries.map(([key, value]) => ({
-      key,
-      value: JSON.parse(JSON.stringify(value)),
-      updated_at: new Date().toISOString(),
-    }))
-  );
-  setSaving(false);
-  if (error) { alert('Save failed: ' + error.message); return; }
-  setDirty({});
-  setSaved(true);
-  setTimeout(() => setSaved(false), 2500);
-};
+  // Database mein tabhi save hoga jab "Save Changes" button dabega.
+  const saveAllChanges = async () => {
+    const entries = Object.entries(dirty);
+    if (entries.length === 0) return;
+    setSaving(true); setSaved(false);
+    const { error } = await supabase.from('admin_config').upsert(
+      entries.map(([key, value]) => ({
+        key,
+        value: JSON.parse(JSON.stringify(value)),
+        updated_at: new Date().toISOString(),
+      }))
+    );
+    setSaving(false);
+    if (error) { alert('Save failed: ' + error.message); return; }
+    setDirty({});
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
 
   const inputClass = 'w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-2.5 text-white font-grotesk text-sm focus:border-[#00ff88]/50';
 
@@ -533,10 +535,13 @@ const saveAllChanges = async () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky top-0 z-10 bg-black py-3">
         <h2 className="font-display font-bold text-white text-xl">Social Proof</h2>
-        {saved && <span className="text-xs text-[#00ff88] font-grotesk flex items-center gap-1"><Check size={14} /> Saved!</span>}
-        {saving && <span className="text-xs text-gray-500 font-grotesk">Saving...</span>}
+        <div className="flex items-center gap-3">
+          {Object.keys(dirty).length > 0 && <span className="text-xs text-yellow-400 font-grotesk">Unsaved changes</span>}
+          {saved && <span className="text-xs text-[#00ff88] font-grotesk flex items-center gap-1"><Check size={14} /> Saved!</span>}
+          <button type="button" onClick={saveAllChanges} disabled={saving || Object.keys(dirty).length === 0} className="px-6 py-2.5 bg-[#00ff88] text-black font-bold text-sm rounded-lg hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{saving ? 'Saving...' : 'Save Changes'}</button>
+        </div>
       </div>
 
       {/* Counter Mode */}
@@ -613,7 +618,6 @@ function AdminConfigEditor() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [paymentHtmlLocal, setPaymentHtmlLocal] = useState('');
-  const [datesLocal, setDatesLocal] = useState({ show_start_date: '', registration_deadline: '' });
 
   useEffect(() => {
     (async () => {
@@ -623,43 +627,37 @@ function AdminConfigEditor() {
       for (const row of data) { cfg[row.key] = row.value; }
       setConfig(cfg as unknown as AdminConfig);
       setPaymentHtmlLocal((cfg.payment_html as string) || '');
-      setDatesLocal({
-  show_start_date: (cfg.show_start_date as string) || '',
-  registration_deadline: (cfg.registration_deadline as string) || '',
-});
     })();
   }, []);
 
   const [dirty, setDirty] = useState<Record<string, unknown>>({});
 
-const saveConfig = (key: string, value: unknown) => {
-  setConfig((prev) => ({ ...prev, [key]: value }));
-  setDirty((prev) => ({ ...prev, [key]: value }));
-  setSaved(false);
-};
+  // Ab ye sirf screen par badlav karta hai, database mein nahi.
+  const saveConfig = (key: string, value: unknown) => {
+    setConfig((prev) => ({ ...prev, [key]: value }));
+    setDirty((prev) => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
 
-const saveAllChanges = async () => {
-  const entries = Object.entries(dirty);
-  if (entries.length === 0) return;
-  setSaving(true); setSaved(false);
-  const { error } = await supabase.from('admin_config').upsert(
-    entries.map(([key, value]) => ({
-      key,
-      value: JSON.parse(JSON.stringify(value)),
-      updated_at: new Date().toISOString(),
-    }))
-  );
-  setSaving(false);
-  if (error) { alert('Save failed: ' + error.message); return; }
-  setDirty({});
-  setSaved(true);
-  setTimeout(() => setSaved(false), 2500);
-};
-  
-const saveDates = async () => {
-  await saveConfig('show_start_date', datesLocal.show_start_date);
-  await saveConfig('registration_deadline', datesLocal.registration_deadline);
-};
+  // Database mein tabhi save hoga jab "Save Changes" button dabega.
+  const saveAllChanges = async () => {
+    const entries = Object.entries(dirty);
+    if (entries.length === 0) return;
+    setSaving(true); setSaved(false);
+    const { error } = await supabase.from('admin_config').upsert(
+      entries.map(([key, value]) => ({
+        key,
+        value: JSON.parse(JSON.stringify(value)),
+        updated_at: new Date().toISOString(),
+      }))
+    );
+    setSaving(false);
+    if (error) { alert('Save failed: ' + error.message); return; }
+    setDirty({});
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
   const savePaymentHtml = () => {
     saveConfig('payment_html', paymentHtmlLocal);
   };
@@ -668,40 +666,21 @@ const saveDates = async () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sticky top-0 z-10 bg-black py-3">
         <h2 className="font-display font-bold text-white text-xl">Configuration</h2>
-        {saved && <span className="text-xs text-[#00ff88] font-grotesk flex items-center gap-1"><Check size={14} /> Configuration saved</span>}
-        {saving && <span className="text-xs text-gray-500 font-grotesk">Saving...</span>}
+        <div className="flex items-center gap-3">
+          {Object.keys(dirty).length > 0 && <span className="text-xs text-yellow-400 font-grotesk">Unsaved changes</span>}
+          {saved && <span className="text-xs text-[#00ff88] font-grotesk flex items-center gap-1"><Check size={14} /> Saved!</span>}
+          <button type="button" onClick={saveAllChanges} disabled={saving || Object.keys(dirty).length === 0} className="px-6 py-2.5 bg-[#00ff88] text-black font-bold text-sm rounded-lg hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{saving ? 'Saving...' : 'Save Changes'}</button>
+        </div>
       </div>
 
       {/* Dates & Settings */}
       <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
         <h3 className="font-display font-bold text-white text-sm tracking-wider uppercase mb-4">Dates & Registration</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-  <label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Show Start Date</label>
-  <input
-    type="date"
-    value={datesLocal.show_start_date}
-    onChange={(e) => setDatesLocal((p) => ({ ...p, show_start_date: e.target.value }))}
-    onClick={(e) => { try { e.currentTarget.showPicker(); } catch { /* ignore */ } }}
-    className={inputClass}
-  />
-</div>
-<div>
-  <label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Deadline</label>
-  <input
-    type="date"
-    value={datesLocal.registration_deadline}
-    onChange={(e) => setDatesLocal((p) => ({ ...p, registration_deadline: e.target.value }))}
-    onClick={(e) => { try { e.currentTarget.showPicker(); } catch { /* ignore */ } }}
-    className={inputClass}
-  />
-</div>
-<div className="md:col-span-2 flex items-center gap-3">
-  <button type="button" onClick={saveDates} className="px-6 py-2.5 bg-[#00ff88] text-black font-bold text-sm rounded-lg hover:bg-white transition-colors">Save Dates</button>
-  <span className="text-xs text-gray-600 font-grotesk">Calendar se date chunein, phir Save Dates dabayein.</span>
-</div>
+          <DateField label="Show Start Date" value={config.show_start_date} onCommit={(v) => saveConfig('show_start_date', v)} />
+          <DateField label="Registration Deadline" value={config.registration_deadline} onCommit={(v) => saveConfig('registration_deadline', v)} />
           <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Window (days)</label><input type="number" value={config.registration_window_days} onChange={(e) => saveConfig('registration_window_days', parseInt(e.target.value) || 0)} className={inputClass} /></div>
           <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Referral Requirement</label><input type="number" value={config.referral_requirement} onChange={(e) => saveConfig('referral_requirement', parseInt(e.target.value) || 2)} className={inputClass} /></div>
           <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Fee</label><input type="text" value={config.registration_fee} onChange={(e) => saveConfig('registration_fee', e.target.value)} className={inputClass} /></div>
@@ -723,16 +702,12 @@ const saveDates = async () => {
         <div>
           <label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Payment Button / Embed HTML</label>
           <textarea
-            value={paymentHtmlLocal}
-            onChange={(e) => setPaymentHtmlLocal(e.target.value)}
+            value={config.payment_html}
+            onChange={(e) => saveConfig('payment_html', e.target.value)}
             className={`${inputClass} min-h-[120px] font-mono text-xs`}
             placeholder="Paste your payment gateway's HTML/embed/button code here..."
           />
-          <div className="mt-3 flex items-center gap-3">
-            <button onClick={savePaymentHtml} className="px-6 py-2.5 bg-[#00ff88] text-black font-bold text-sm rounded-lg hover:bg-white transition-colors">Save Payment HTML</button>
-            {saved && <span className="text-xs text-[#00ff88] font-grotesk flex items-center gap-1"><Check size={14} /> Payment configuration saved</span>}
-          </div>
-          <p className="mt-2 text-xs text-gray-600 font-grotesk">Insert your payment gateway's HTML button or embed code. This will be rendered on the payment page. Click Save to persist.</p>
+          <p className="mt-2 text-xs text-gray-600 font-grotesk">Ye code payment page par dikhega. Upar "Save Changes" dabane par hi save hoga.</p>
         </div>
       </div>
 
@@ -772,6 +747,23 @@ const saveDates = async () => {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function DateField({ label, value, onCommit }: { label: string; value: string; onCommit: (v: string) => void }) {
+  const [draft, setDraft] = useState(value || '');
+  useEffect(() => { setDraft(value || ''); }, [value]);
+  return (
+    <div>
+      <label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">{label}</label>
+      <input
+        type="date"
+        value={draft}
+        onChange={(e) => { setDraft(e.target.value); if (e.target.value) onCommit(e.target.value); }}
+        onClick={(e) => { try { e.currentTarget.showPicker(); } catch { /* ignore */ } }}
+        className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-2.5 text-white font-grotesk text-sm focus:border-[#00ff88]/50"
+      />
     </div>
   );
 }
