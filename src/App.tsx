@@ -77,13 +77,8 @@ function App() {
   }
 
   // Thank you route
-  if (route.name === 'thankyou' && route.participantId) {
-    return (
-      <ThankYou
-        participantId={route.participantId}
-        onGoToDashboard={(pid) => navigate(buildPath('/dashboard', { pid }))}
-      />
-    );
+  if (route.name === 'thankyou') {
+    return <ThankYou onLogin={() => navigate('/login')} onHome={goHome} />;
   }
 
   // Dashboard route
