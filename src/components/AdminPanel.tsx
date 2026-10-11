@@ -595,6 +595,7 @@ function AdminConfigEditor() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [paymentHtmlLocal, setPaymentHtmlLocal] = useState('');
+  const [datesLocal, setDatesLocal] = useState({ show_start_date: '', registration_deadline: '' });
 
   useEffect(() => {
     (async () => {
@@ -604,6 +605,10 @@ function AdminConfigEditor() {
       for (const row of data) { cfg[row.key] = row.value; }
       setConfig(cfg as unknown as AdminConfig);
       setPaymentHtmlLocal((cfg.payment_html as string) || '');
+      setDatesLocal({
+  show_start_date: (cfg.show_start_date as string) || '',
+  registration_deadline: (cfg.registration_deadline as string) || '',
+});
     })();
   }, []);
 
@@ -614,7 +619,10 @@ function AdminConfigEditor() {
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };
-
+const saveDates = async () => {
+  await saveConfig('show_start_date', datesLocal.show_start_date);
+  await saveConfig('registration_deadline', datesLocal.registration_deadline);
+};
   const savePaymentHtml = () => {
     saveConfig('payment_html', paymentHtmlLocal);
   };
@@ -633,8 +641,30 @@ function AdminConfigEditor() {
       <div className="bg-white/[0.03] border border-white/10 rounded-xl p-6">
         <h3 className="font-display font-bold text-white text-sm tracking-wider uppercase mb-4">Dates & Registration</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Show Start Date</label><input type="date" value={config.show_start_date} onChange={(e) => saveConfig('show_start_date', e.target.value)} className={inputClass} /></div>
-          <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Deadline</label><input type="date" value={config.registration_deadline} onChange={(e) => saveConfig('registration_deadline', e.target.value)} className={inputClass} /></div>
+          <div>
+  <label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Show Start Date</label>
+  <input
+    type="date"
+    value={datesLocal.show_start_date}
+    onChange={(e) => setDatesLocal((p) => ({ ...p, show_start_date: e.target.value }))}
+    onClick={(e) => { try { e.currentTarget.showPicker(); } catch { /* ignore */ } }}
+    className={inputClass}
+  />
+</div>
+<div>
+  <label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Deadline</label>
+  <input
+    type="date"
+    value={datesLocal.registration_deadline}
+    onChange={(e) => setDatesLocal((p) => ({ ...p, registration_deadline: e.target.value }))}
+    onClick={(e) => { try { e.currentTarget.showPicker(); } catch { /* ignore */ } }}
+    className={inputClass}
+  />
+</div>
+<div className="md:col-span-2 flex items-center gap-3">
+  <button type="button" onClick={saveDates} className="px-6 py-2.5 bg-[#00ff88] text-black font-bold text-sm rounded-lg hover:bg-white transition-colors">Save Dates</button>
+  <span className="text-xs text-gray-600 font-grotesk">Calendar se date chunein, phir Save Dates dabayein.</span>
+</div>
           <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Window (days)</label><input type="number" value={config.registration_window_days} onChange={(e) => saveConfig('registration_window_days', parseInt(e.target.value) || 0)} className={inputClass} /></div>
           <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Referral Requirement</label><input type="number" value={config.referral_requirement} onChange={(e) => saveConfig('referral_requirement', parseInt(e.target.value) || 2)} className={inputClass} /></div>
           <div><label className="block text-xs text-gray-500 mb-1 font-grotesk uppercase tracking-wider">Registration Fee</label><input type="text" value={config.registration_fee} onChange={(e) => saveConfig('registration_fee', e.target.value)} className={inputClass} /></div>
