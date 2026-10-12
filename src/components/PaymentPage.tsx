@@ -48,6 +48,23 @@ export function PaymentPage({ participantId, onBack, onPaymentSuccess }: Payment
     });
   }, [config, loading]);
 
+  // Payment hote hi (webhook se) page apne aap aage badh jaye, "Verify" button dabana zaroori nahi
+  useEffect(() => {
+    const t = setInterval(async () => {
+      const { data } = await supabase
+        .from('participants')
+        .select('payment_verified')
+        .eq('participant_id', participantId)
+        .maybeSingle();
+      if (data?.payment_verified) {
+        clearInterval(t);
+        onPaymentSuccess(participantId);
+      }
+    }, 5000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participantId]);
+
   // Poll for payment verification (in case webhook updates the DB)
   const checkPaymentStatus = async () => {
     setChecking(true);
